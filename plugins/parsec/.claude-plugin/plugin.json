@@ -1,0 +1,11 @@
+{
+  "name": "parsec",
+  "displayName": "Parsec",
+  "version": "0.0.10-alpha-27-ga746ba0",
+  "description": "Context savings for coding agents — Claude Code, Codex CLI, opencode: blocks wasteful re-reads and command loops, measures every token it saves. Free tier of the Parsec A3S stack.",
+  "author": {
+    "name": "Dasein Labs"
+  },
+  "mcpServers": "./.mcp.json",
+  "hooks": "./hooks/parsec-hooks.json"
+}
