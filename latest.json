@@ -1,14 +1,28 @@
 {
-  "patch": {
-    "version": "0.0.11-alpha",
-    "tag": "v0.0.11-alpha",
+  "stable": {
+    "version": "0.2.0",
+    "tag": "v0.2.0",
     "assets": {
       "msvcp140.dll": "7c26614e1d733892c2deac7e245ce115504b1d80592dd0a01b08e3e5a55f89ca",
       "msvcp140_1.dll": "206c931bf90fdad8816de3b5e2ef80b2bcaa9406c89ecc05fe6fddffe251e982",
-      "parsec-darwin-arm64": "507f74a330700dcfa531caeea59b61552731195d3e1ca868dc0b20f0b603b277",
-      "parsec-linux-x64": "b301d0a15f942f0a2e7c0bd2f67c2b166dfd377ca16fae46b003d5fadd4d7aa9",
-      "parsec-plugin.zip": "e125d5ff90ca8383f21425be1f932d2129e776519fa772978113194b9f1377de",
-      "parsec-win-x64.exe": "508cbdb0fb69b46dab48cf45fe0e79c9023492a5e9fc080674b26df43cbe9062",
+      "parsec-darwin-arm64": "fb4a5dd268c341673b283f9070c79dd5b8843e353e3520b7ba69bdafb7d6eb12",
+      "parsec-linux-x64": "00026be6cdec103e0e9cb48622497d37354a964978d6a86a43e989a310534568",
+      "parsec-plugin.zip": "7377e3458f48cb6b538570f6e39f176b2324d4b5fb4597e6438aa3d23e12d7a0",
+      "parsec-win-x64.exe": "1c44fa2454c72bf45f4244668907271aa81f10da584c760cd9814da0086c35a6",
+      "vcruntime140.dll": "d1f4225df2cd877dbf130d5668a021dce3f94118455ff5ec952061c30afc9ce7",
+      "vcruntime140_1.dll": "a7146c08f89fe5b04541ab507cdb59ff7b44534d4ba3c668a426c6450a03434e"
+    }
+  },
+  "patch": {
+    "version": "0.2.0",
+    "tag": "v0.2.0",
+    "assets": {
+      "msvcp140.dll": "7c26614e1d733892c2deac7e245ce115504b1d80592dd0a01b08e3e5a55f89ca",
+      "msvcp140_1.dll": "206c931bf90fdad8816de3b5e2ef80b2bcaa9406c89ecc05fe6fddffe251e982",
+      "parsec-darwin-arm64": "fb4a5dd268c341673b283f9070c79dd5b8843e353e3520b7ba69bdafb7d6eb12",
+      "parsec-linux-x64": "00026be6cdec103e0e9cb48622497d37354a964978d6a86a43e989a310534568",
+      "parsec-plugin.zip": "7377e3458f48cb6b538570f6e39f176b2324d4b5fb4597e6438aa3d23e12d7a0",
+      "parsec-win-x64.exe": "1c44fa2454c72bf45f4244668907271aa81f10da584c760cd9814da0086c35a6",
       "vcruntime140.dll": "d1f4225df2cd877dbf130d5668a021dce3f94118455ff5ec952061c30afc9ce7",
       "vcruntime140_1.dll": "a7146c08f89fe5b04541ab507cdb59ff7b44534d4ba3c668a426c6450a03434e"
     }
