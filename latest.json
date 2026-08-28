@@ -14,15 +14,15 @@
     }
   },
   "patch": {
-    "version": "0.2.2",
-    "tag": "v0.2.2",
+    "version": "0.2.3",
+    "tag": "v0.2.3",
     "assets": {
       "msvcp140.dll": "7c26614e1d733892c2deac7e245ce115504b1d80592dd0a01b08e3e5a55f89ca",
       "msvcp140_1.dll": "206c931bf90fdad8816de3b5e2ef80b2bcaa9406c89ecc05fe6fddffe251e982",
-      "parsec-darwin-arm64": "ffe443dffcf568d1746c71b35f822bcd00f82d94e98dd262aab2abc8685f7f3d",
-      "parsec-linux-x64": "e0492d16a825748f9d82ccd3520b22e3056b5822d1a5ef9817f29e7a7b891c05",
-      "parsec-plugin.zip": "52eef137f7be7e126812355cc709ca837c485dde09bae7c6affb75b4e9493f33",
-      "parsec-win-x64.exe": "a545f152f8877d7a7b95131ce21bbf5d63037644e1b6f7291a933244a4050ea1",
+      "parsec-darwin-arm64": "3ece5f210032cf518ca59397ca74e8764871b220e836f0c472505ccbe9429b11",
+      "parsec-linux-x64": "e59e4f5d780c1563a0d6b41f4d4ba1fae1315dcc154cedf73c454343b2c98e6c",
+      "parsec-plugin.zip": "12eea49b4d36a8556eacb798b2914665e7ff789bbb29049ea8151f9dbbeba150",
+      "parsec-win-x64.exe": "7ed05587dc630bf75ffefc89955ecac7eb230e1ff330141b9ed77ae3eb39ffca",
       "vcruntime140.dll": "d1f4225df2cd877dbf130d5668a021dce3f94118455ff5ec952061c30afc9ce7",
       "vcruntime140_1.dll": "a7146c08f89fe5b04541ab507cdb59ff7b44534d4ba3c668a426c6450a03434e"
     }
