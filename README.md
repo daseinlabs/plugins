@@ -29,6 +29,18 @@ Windows (PowerShell; or run the `curl | bash` line inside WSL):
 powershell -c "irm https://raw.githubusercontent.com/daseinlabs/plugins/main/install.ps1 | iex"
 ```
 
+Signed in at [app.getparsec.ai](https://app.getparsec.ai)? The dashboard's
+first-run screen emits the same lines with your API key baked in, so the
+install reports savings from its first request with no separate key step:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/daseinlabs/plugins/main/install.sh | bash -s -- --key psc_…
+```
+
+```powershell
+powershell -c "Set-Item Env:PARSEC_API_KEY psc_…; irm https://raw.githubusercontent.com/daseinlabs/plugins/main/install.ps1 | iex"
+```
+
 Then get a key at **[app.getparsec.ai](https://app.getparsec.ai)** and hand it
 to parsec — `/parsec:key` inside a Claude Code session, or from any shell:
 

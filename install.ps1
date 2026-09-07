@@ -36,9 +36,14 @@
 #   & ([scriptblock]::Create((irm .../install.ps1))) -NoDesktop
 #   & ([scriptblock]::Create((irm .../install.ps1))) -Tools desktop -NoCa
 #
+#   & ([scriptblock]::Create((irm .../install.ps1))) -Key psc_...
+#
 # (or set $env:PARSEC_TOOLS = "codex" / $env:PARSEC_BYOK = "1" /
 # $env:PARSEC_NO_DESKTOP = "1" / $env:PARSEC_NO_CA = "1" /
-# $env:PARSEC_NO_AUTOSTART = "1" before the plain irm|iex form.)
+# $env:PARSEC_NO_AUTOSTART = "1" / $env:PARSEC_API_KEY = "psc_..." before
+# the plain irm|iex form. The app's first-run screen emits the keyed form as
+#   powershell -c "Set-Item Env:PARSEC_API_KEY psc_...; irm .../install.ps1 | iex"
+# which reads the same from cmd and from PowerShell: no $ to expand.)
 #
 # Source of truth: scripts/install.ps1 in the parsec repo; release.yml
 # publishes it next to the binaries it references, so script and binaries
@@ -59,6 +64,9 @@ param(
     # interceptor dies with the session and Desktop silently goes unrouted
     # (fail open) until someone runs `parsec desktop start`.
     [switch]$NoAutostart,
+    # The per-account psc_ key from https://app.getparsec.ai. Stored via
+    # `parsec key set` so savings report from the first routed request.
+    [string]$Key = "",
     # Install the tray app (notification area + taskbar) and register it to
     # start at sign-in. Opt-in: a login item is a persistent, visible addition
     # to someone's machine and should not appear because they installed a CLI.
@@ -83,6 +91,12 @@ if ($env:PARSEC_BYOK -eq "1") { $Byok = $true }
 if ($env:PARSEC_NO_DESKTOP -eq "1") { $NoDesktop = $true }
 if ($env:PARSEC_NO_CA -eq "1") { $NoCa = $true }
 if ($env:PARSEC_NO_AUTOSTART -eq "1") { $NoAutostart = $true }
+if (-not $Key -and $env:PARSEC_API_KEY) { $Key = $env:PARSEC_API_KEY }
+$Key = "$Key".Trim()
+# The proxy honours PARSEC_API_KEY itself; drop it from this process so the
+# proxy this script (re)starts reads the stored file, not an env copy that
+# `parsec key clear` could never switch off.
+Remove-Item Env:PARSEC_API_KEY -ErrorAction SilentlyContinue
 $Tools = @($Tools | ForEach-Object { if ($_ -eq "claude-code") { "claude" } else { $_ } })
 foreach ($t in $Tools) {
     if ($t -notin @("claude", "codex", "opencode", "desktop")) {
@@ -605,6 +619,28 @@ function Install-ParsecDesktop([string]$Exe, [bool]$TrustCa, [bool]$Autostart) {
     }
 }
 
+# -- API key ------------------------------------------------------------------
+# Through the binary when there is one (`parsec key set` also re-reports the
+# install so the machine is attributed to the account); otherwise straight
+# into ~\.parsec\credentials.json in the shape credentials.rs reads, so an
+# ARM64 claude-only install still comes up keyed.
+$keySaved = $false
+if ($Key) {
+    if (-not $Key.StartsWith("psc_")) { Write-Warning "key does not start with 'psc_' - storing it anyway" }
+    $stored = $false
+    if ($needsBinary -and (Test-Path $dest)) {
+        try { & $dest key set $Key; $stored = ($LASTEXITCODE -eq 0) } catch { $stored = $false }
+    }
+    if (-not $stored) {
+        $credsPath = Join-Path $env:USERPROFILE ".parsec\credentials.json"
+        New-Item -ItemType Directory -Force -Path (Split-Path $credsPath) | Out-Null
+        $json = @{ api_key = $Key } | ConvertTo-Json
+        [System.IO.File]::WriteAllText($credsPath, $json + "`n", (New-Object System.Text.UTF8Encoding $false))
+        Write-Host "saved API key to $credsPath"
+    }
+    $keySaved = $true
+}
+
 # -- per-tool setup -----------------------------------------------------------
 foreach ($t in $Tools) {
     Write-Host ""
@@ -617,7 +653,8 @@ foreach ($t in $Tools) {
             try { claude plugin marketplace add $MarketplaceUrl 2>$null | Out-Null } catch { Write-Host "(marketplace already added - continuing)" }
             claude plugin install parsec@parsec-marketplace
             if ($LASTEXITCODE -eq 0) {
-                Write-Host "Claude Code plugin installed - get a key at https://app.getparsec.ai and run /parsec:key in a session."
+                if ($keySaved) { Write-Host "Claude Code plugin installed." }
+                else { Write-Host "Claude Code plugin installed - get a key at https://app.getparsec.ai and run /parsec:key in a session." }
             }
             else {
                 Write-Warning "plugin install failed - do it manually:`n  claude plugin marketplace add $MarketplaceUrl`n  claude plugin install parsec@parsec-marketplace"
@@ -671,6 +708,11 @@ if ($Tools -contains "desktop") {
 Write-Host "undo: parsec disable codex|opencode|desktop - parsec tray uninstall - claude plugin uninstall parsec"
 
 # -- final pointer: the one step left is adding an API key ---------------------
-$keyCmd = if ($needsBinary) { "parsec key set <key>" } else { "/parsec:key in a Claude Code session" }
 Write-Host ""
-Write-Host ("-> Go to https://app.getparsec.ai - grab your API key, then add it: " + $keyCmd) -ForegroundColor Green
+if ($keySaved) {
+    Write-Host "API key saved - savings report to https://app.getparsec.ai from your next request." -ForegroundColor Green
+}
+else {
+    $keyCmd = if ($needsBinary) { "parsec key set <key>" } else { "/parsec:key in a Claude Code session" }
+    Write-Host ("-> Go to https://app.getparsec.ai - grab your API key, then add it: " + $keyCmd) -ForegroundColor Green
+}

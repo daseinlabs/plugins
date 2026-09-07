@@ -37,9 +37,12 @@
 #   … | bash -s -- desktop --no-ca  # set Desktop up, do not trust the CA
 #   … | bash -s -- desktop --no-autostart  # no boot service — interception
 #                                   # stops at reboot until `parsec desktop start`
+#   … | bash -s -- --key psc_…      # store the dashboard API key too, so
+#                                   # savings report from the first request
+#                                   # (the app's first-run screen emits this form)
 #
-# (or set PARSEC_NO_DESKTOP=1 / PARSEC_NO_CA=1 / PARSEC_NO_AUTOSTART=1 before
-# the plain curl | bash form.)
+# (or set PARSEC_NO_DESKTOP=1 / PARSEC_NO_CA=1 / PARSEC_NO_AUTOSTART=1 /
+# PARSEC_API_KEY=psc_… before the plain curl | bash form.)
 #
 # Source of truth: scripts/install.sh in the parsec repo; release.yml
 # publishes it next to the binaries it references, so script and binaries
@@ -55,7 +58,18 @@ byok=0
 no_desktop="${PARSEC_NO_DESKTOP:-0}"
 no_ca="${PARSEC_NO_CA:-0}"
 no_autostart="${PARSEC_NO_AUTOSTART:-0}"
+# The per-account psc_ key. `--key` wins over the env var; the env var is
+# what the proxy itself honours, so it is unset below once the key is on
+# disk — otherwise the proxy restarted by this script would carry the env
+# copy and `parsec key clear` could never switch it off.
+api_key="${PARSEC_API_KEY:-}"
+want_key=0
 for a in "$@"; do
+  if [ "$want_key" = 1 ]; then
+    api_key="$a"
+    want_key=0
+    continue
+  fi
   case "$a" in
     codex | opencode | claude | desktop) tools="$tools $a" ;;
     claude-code) tools="$tools claude" ;;
@@ -63,12 +77,20 @@ for a in "$@"; do
     --no-desktop) no_desktop=1 ;;
     --no-ca) no_ca=1 ;;
     --no-autostart) no_autostart=1 ;;
+    --key) want_key=1 ;;
+    --key=*) api_key="${a#--key=}" ;;
     *)
-      echo "unknown argument: $a (expected: claude, codex, opencode, desktop, --byok, --no-desktop, --no-ca, --no-autostart)" >&2
+      echo "unknown argument: $a (expected: claude, codex, opencode, desktop, --byok, --no-desktop, --no-ca, --no-autostart, --key <psc_…>)" >&2
       exit 1
       ;;
   esac
 done
+if [ "$want_key" = 1 ]; then
+  echo "--key needs a value: the psc_… key from https://app.getparsec.ai" >&2
+  exit 1
+fi
+api_key="$(printf '%s' "$api_key" | tr -d '[:space:]')"
+unset PARSEC_API_KEY
 
 # ── Claude Desktop discovery ─────────────────────────────────────────────────
 # Presence only. mitmproxy's local mode matches the process by NAME
@@ -253,6 +275,38 @@ if [ -n "$plat" ]; then
   esac
 fi
 
+# ── API key ──────────────────────────────────────────────────────────────────
+# Through the binary when there is one (`parsec key set` also re-reports the
+# install so the machine is attributed to the account); otherwise straight
+# into ~/.parsec/credentials.json in the shape credentials.rs reads, mode
+# 0600, so a claude-only install on a platform without a binary still comes
+# up keyed. Done before per-tool setup so the very first routed request
+# ships its savings row.
+key_saved=0
+if [ -n "$api_key" ]; then
+  case "$api_key" in
+    psc_*) ;;
+    *) echo "warning: key does not start with 'psc_' — storing it anyway" >&2 ;;
+  esac
+  if [ -n "$plat" ] && "$dest" key set "$api_key"; then
+    key_saved=1
+  else
+    creds="$HOME/.parsec/credentials.json"
+    mkdir -p "$(dirname "$creds")"
+    tmp_creds="$creds.tmp"
+    umask 077
+    # Only a psc_ key from the dashboard lands here, but escape anyway so a
+    # stray quote can never produce a file the proxy rejects.
+    esc="$(printf '%s' "$api_key" | sed 's/\\/\\\\/g; s/"/\\"/g')"
+    printf '{\n  "api_key": "%s"\n}\n' "$esc" >"$tmp_creds"
+    chmod 600 "$tmp_creds"
+    mv "$tmp_creds" "$creds"
+    umask 022
+    echo "saved API key to $creds"
+    key_saved=1
+  fi
+fi
+
 # ── Claude Desktop ───────────────────────────────────────────────────────────
 # Desktop has no endpoint setting (its embedded SDK is pinned to
 # api.anthropic.com), so the only route in is process-scoped TLS interception
@@ -326,7 +380,11 @@ for t in $tools; do
       claude plugin marketplace add "$MARKETPLACE_URL" 2>/dev/null \
         || echo "(marketplace already added — continuing)"
       if claude plugin install parsec@parsec-marketplace; then
-        echo "Claude Code plugin installed — get a key at https://app.getparsec.ai and run /parsec:key in a session."
+        if [ "$key_saved" = 1 ]; then
+          echo "Claude Code plugin installed."
+        else
+          echo "Claude Code plugin installed — get a key at https://app.getparsec.ai and run /parsec:key in a session."
+        fi
       else
         echo "plugin install failed — do it manually:" >&2
         echo "  claude plugin marketplace add $MARKETPLACE_URL" >&2
@@ -367,7 +425,11 @@ echo "undo: parsec disable codex|opencode|desktop · claude plugin uninstall par
 # ── final pointer: the one step left is adding an API key ────────────────────
 # Green only when stdout is a terminal — `curl | bash` into a log stays clean.
 if [ -t 1 ]; then grn="$(printf '\033[1;32m')" rst="$(printf '\033[0m')"; else grn="" rst=""; fi
-key_cmd="parsec key set <key>"
-case "$tools" in *claude*) [ -z "$plat" ] && key_cmd="/parsec:key in a Claude Code session" ;; esac
 echo
-echo "${grn}➜ Go to https://app.getparsec.ai — grab your API key, then add it: $key_cmd${rst}"
+if [ "$key_saved" = 1 ]; then
+  echo "${grn}✓ API key saved — savings report to https://app.getparsec.ai from your next request.${rst}"
+else
+  key_cmd="parsec key set <key>"
+  case "$tools" in *claude*) [ -z "$plat" ] && key_cmd="/parsec:key in a Claude Code session" ;; esac
+  echo "${grn}➜ Go to https://app.getparsec.ai — grab your API key, then add it: $key_cmd${rst}"
+fi
