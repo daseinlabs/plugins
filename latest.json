@@ -1,32 +1,32 @@
 {
   "stable": {
-    "version": "0.2.12",
-    "tag": "v0.2.12",
+    "version": "0.2.13",
+    "tag": "v0.2.13",
     "assets": {
       "msvcp140.dll": "7c26614e1d733892c2deac7e245ce115504b1d80592dd0a01b08e3e5a55f89ca",
       "msvcp140_1.dll": "206c931bf90fdad8816de3b5e2ef80b2bcaa9406c89ecc05fe6fddffe251e982",
-      "parsec-0.2.12-macos-arm64.pkg": "cdf2667670b92f1db0bf8d9151df927e8d882f3c90fe3953c69e443318f98397",
-      "parsec-0.2.12-windows-x64-setup.exe": "93f276c817aeb83e1e7ace4c30e43c2477de4da2a0ef2afb9ebe63b66ca7845c",
-      "parsec-darwin-arm64": "5f0da257c0396997bb898b0025e094cb7cfd957610a29acff0c68a12278361a7",
-      "parsec-linux-x64": "acc1004eb8f38ceb0287ec0fd5eb1bc4f7ba07a703904dce6d36d9cc8ee58a73",
-      "parsec-plugin.zip": "ffaceb40d964165043fce10ce3d00e44591f3bafa48c465ee2cf8c8b24f10356",
-      "parsec-win-x64.exe": "c4aee336abc2214b3f8ede64a83bcefa134f94e1e82c119a4348e0782a9db1f4",
+      "parsec-0.2.13-macos-arm64.pkg": "12319528503cd1b1dbd5f9e8c1b3721a509f1397965879746592582890e6cca7",
+      "parsec-0.2.13-windows-x64-setup.exe": "56cc379eeb19bce846310eafb582c330edf5a4a3874d186fe09f9194332f2400",
+      "parsec-darwin-arm64": "aa0e534b4e31bde844cd2b8e22a12e2f4503d1cf00061c35ddf9bc1aa027724f",
+      "parsec-linux-x64": "ae1ecefe177f50a1bfc79b7a3584d15b5f643fb679795195416d1ff986f76c05",
+      "parsec-plugin.zip": "6eca8e86e704a6398ac82ab987c3686b78b59e51c09c6587bece299235ae3563",
+      "parsec-win-x64.exe": "2d6547a1f398e60fe9234815c0b2d2ac8e9d119bee6164783e1d0234878ec8d4",
       "vcruntime140.dll": "d1f4225df2cd877dbf130d5668a021dce3f94118455ff5ec952061c30afc9ce7",
       "vcruntime140_1.dll": "a7146c08f89fe5b04541ab507cdb59ff7b44534d4ba3c668a426c6450a03434e"
     }
   },
   "patch": {
-    "version": "0.2.12",
-    "tag": "v0.2.12",
+    "version": "0.2.13",
+    "tag": "v0.2.13",
     "assets": {
       "msvcp140.dll": "7c26614e1d733892c2deac7e245ce115504b1d80592dd0a01b08e3e5a55f89ca",
       "msvcp140_1.dll": "206c931bf90fdad8816de3b5e2ef80b2bcaa9406c89ecc05fe6fddffe251e982",
-      "parsec-0.2.12-macos-arm64.pkg": "cdf2667670b92f1db0bf8d9151df927e8d882f3c90fe3953c69e443318f98397",
-      "parsec-0.2.12-windows-x64-setup.exe": "93f276c817aeb83e1e7ace4c30e43c2477de4da2a0ef2afb9ebe63b66ca7845c",
-      "parsec-darwin-arm64": "5f0da257c0396997bb898b0025e094cb7cfd957610a29acff0c68a12278361a7",
-      "parsec-linux-x64": "acc1004eb8f38ceb0287ec0fd5eb1bc4f7ba07a703904dce6d36d9cc8ee58a73",
-      "parsec-plugin.zip": "ffaceb40d964165043fce10ce3d00e44591f3bafa48c465ee2cf8c8b24f10356",
-      "parsec-win-x64.exe": "c4aee336abc2214b3f8ede64a83bcefa134f94e1e82c119a4348e0782a9db1f4",
+      "parsec-0.2.13-macos-arm64.pkg": "12319528503cd1b1dbd5f9e8c1b3721a509f1397965879746592582890e6cca7",
+      "parsec-0.2.13-windows-x64-setup.exe": "56cc379eeb19bce846310eafb582c330edf5a4a3874d186fe09f9194332f2400",
+      "parsec-darwin-arm64": "aa0e534b4e31bde844cd2b8e22a12e2f4503d1cf00061c35ddf9bc1aa027724f",
+      "parsec-linux-x64": "ae1ecefe177f50a1bfc79b7a3584d15b5f643fb679795195416d1ff986f76c05",
+      "parsec-plugin.zip": "6eca8e86e704a6398ac82ab987c3686b78b59e51c09c6587bece299235ae3563",
+      "parsec-win-x64.exe": "2d6547a1f398e60fe9234815c0b2d2ac8e9d119bee6164783e1d0234878ec8d4",
       "vcruntime140.dll": "d1f4225df2cd877dbf130d5668a021dce3f94118455ff5ec952061c30afc9ce7",
       "vcruntime140_1.dll": "a7146c08f89fe5b04541ab507cdb59ff7b44534d4ba3c668a426c6450a03434e"
     }
