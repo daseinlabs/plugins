@@ -41,8 +41,10 @@
 #                                   # savings report from the first request
 #                                   # (the app's first-run screen emits this form)
 #
+#   … | bash -s -- --no-login      # do not open the browser sign-in at the end
+#
 # (or set PARSEC_NO_DESKTOP=1 / PARSEC_NO_CA=1 / PARSEC_NO_AUTOSTART=1 /
-# PARSEC_API_KEY=psc_… before the plain curl | bash form.)
+# PARSEC_NO_LOGIN=1 / PARSEC_API_KEY=psc_… before the plain curl | bash form.)
 #
 # Source of truth: scripts/install.sh in the parsec repo; release.yml
 # publishes it next to the binaries it references, so script and binaries
@@ -58,6 +60,10 @@ byok=0
 no_desktop="${PARSEC_NO_DESKTOP:-0}"
 no_ca="${PARSEC_NO_CA:-0}"
 no_autostart="${PARSEC_NO_AUTOSTART:-0}"
+# The install ends by signing in (`parsec login`: browser handoff, no key to
+# paste) when it can — a terminal to talk to and no key already stored.
+# CI and scripted installs opt out; a baked --key skips it on its own.
+no_login="${PARSEC_NO_LOGIN:-0}"
 # The per-account psc_ key. `--key` wins over the env var; the env var is
 # what the proxy itself honours, so it is unset below once the key is on
 # disk — otherwise the proxy restarted by this script would carry the env
@@ -77,10 +83,11 @@ for a in "$@"; do
     --no-desktop) no_desktop=1 ;;
     --no-ca) no_ca=1 ;;
     --no-autostart) no_autostart=1 ;;
+    --no-login) no_login=1 ;;
     --key) want_key=1 ;;
     --key=*) api_key="${a#--key=}" ;;
     *)
-      echo "unknown argument: $a (expected: claude, codex, opencode, desktop, --byok, --no-desktop, --no-ca, --no-autostart, --key <psc_…>)" >&2
+      echo "unknown argument: $a (expected: claude, codex, opencode, desktop, --byok, --no-desktop, --no-ca, --no-autostart, --no-login, --key <psc_…>)" >&2
       exit 1
       ;;
   esac
@@ -383,7 +390,7 @@ for t in $tools; do
         if [ "$key_saved" = 1 ]; then
           echo "Claude Code plugin installed."
         else
-          echo "Claude Code plugin installed — get a key at https://app.getparsec.ai and run /parsec:key in a session."
+          echo "Claude Code plugin installed — run /parsec:login in a session to link your dashboard."
         fi
       else
         echo "plugin install failed — do it manually:" >&2
@@ -422,14 +429,23 @@ esac
 [ -n "$path_hint" ] && echo "$path_hint"
 echo "undo: parsec disable codex|opencode|desktop · claude plugin uninstall parsec"
 
-# ── final pointer: the one step left is adding an API key ────────────────────
+# ── sign in: the one step left ───────────────────────────────────────────────
 # Green only when stdout is a terminal — `curl | bash` into a log stays clean.
 if [ -t 1 ]; then grn="$(printf '\033[1;32m')" rst="$(printf '\033[0m')"; else grn="" rst=""; fi
 echo
 if [ "$key_saved" = 1 ]; then
   echo "${grn}✓ API key saved — savings report to https://app.getparsec.ai from your next request.${rst}"
+elif [ -n "$plat" ] && [ "$no_login" != 1 ] && [ -t 1 ]; then
+  # Interactive install with a binary: finish by signing in right here.
+  # `parsec login` opens the dashboard and hands the key straight back to
+  # this machine (packages/proxy/src/login.rs). stdin is the piped script
+  # under curl | bash, so the child gets /dev/null — it never reads stdin.
+  echo "${grn}➜ Signing in — a browser tab is opening at https://app.getparsec.ai; click Connect.${rst}"
+  if ! "$dest" login --timeout 300 </dev/null; then
+    echo "${grn}➜ Not signed in yet — run  parsec login  any time (or click Sign in in the parsec menu-bar app).${rst}"
+  fi
+elif [ -n "$plat" ]; then
+  echo "${grn}➜ Sign in: run  parsec login  — it opens https://app.getparsec.ai and links this machine.${rst}"
 else
-  key_cmd="parsec key set <key>"
-  case "$tools" in *claude*) [ -z "$plat" ] && key_cmd="/parsec:key in a Claude Code session" ;; esac
-  echo "${grn}➜ Go to https://app.getparsec.ai — grab your API key, then add it: $key_cmd${rst}"
+  echo "${grn}➜ Sign in: run /parsec:login in a Claude Code session — it opens https://app.getparsec.ai and links this machine.${rst}"
 fi

@@ -38,4 +38,4 @@ writes absent keys and repoints entries it wrote under an older plugin
 version. Safe to re-run.
 
 If the user has a dashboard API key to connect afterwards, that is
-`/parsec:key`, not part of setup.
+`/parsec:login`, not part of setup.

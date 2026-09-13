@@ -41,15 +41,17 @@ curl -fsSL https://raw.githubusercontent.com/daseinlabs/plugins/main/install.sh 
 powershell -c "Set-Item Env:PARSEC_API_KEY psc_…; irm https://raw.githubusercontent.com/daseinlabs/plugins/main/install.ps1 | iex"
 ```
 
-Then get a key at **[app.getparsec.ai](https://app.getparsec.ai)** and hand it
-to parsec — `/parsec:key` inside a Claude Code session, or from any shell:
+The install ends by signing you in: a browser tab opens at
+**[app.getparsec.ai](https://app.getparsec.ai)**, you sign in and click
+*Connect*, and the key is handed straight back to this machine — nothing to
+paste. Skipped it? Any of these opens the same handoff later:
 
-```sh
-parsec key set psc_…
-```
+- **Sign in to parsec…** in the parsec menu-bar / tray app
+- `parsec login` from any shell
+- `/parsec:login` inside a Claude Code session
 
-No slash command in your agent (Codex CLI, opencode)? Just paste the key in
-chat and ask the agent to set it — it runs the same `parsec key set` for you.
+A machine with no browser (SSH, CI) is the one case that needs a key by hand:
+mint one on the dashboard's account page and run `parsec key set psc_…` there.
 
 > **Until a key is set, parsec saves nothing.** Your tools keep working
 > exactly as before; parsec stays pure passthrough until it is entitled.
@@ -117,7 +119,7 @@ Claude Code status line, codex's `$parsec-savings`, and opencode's
 | `/parsec:trim` | A better `/compact`: stage a deterministic trim of the transcript (what was actually re-read, edited, or used later) plus your standing directives, injected automatically after `/clear`. `--level 1–5` sets aggressiveness (default 3) |
 | `/parsec:setup` | Activate parsec: routing env, status line, proxy — or retry a failed first run |
 | `/parsec:proxy` | Restart the local proxy if it was killed mid-session |
-| `/parsec:key` | Set, show, or clear your `psc_…` API key |
+| `/parsec:login` | Sign in (browser handoff) — or show / clear the stored account key |
 | `/parsec:share` | Opt-in telemetry: preview the exact bytes, or turn it off |
 | `/parsec:uninstall` | Clean removal — routing, proxy, local data, plugin |
 

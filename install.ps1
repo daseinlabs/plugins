@@ -40,7 +40,8 @@
 #
 # (or set $env:PARSEC_TOOLS = "codex" / $env:PARSEC_BYOK = "1" /
 # $env:PARSEC_NO_DESKTOP = "1" / $env:PARSEC_NO_CA = "1" /
-# $env:PARSEC_NO_AUTOSTART = "1" / $env:PARSEC_API_KEY = "psc_..." before
+# $env:PARSEC_NO_AUTOSTART = "1" / $env:PARSEC_NO_LOGIN = "1" /
+# $env:PARSEC_API_KEY = "psc_..." before
 # the plain irm|iex form. The app's first-run screen emits the keyed form as
 #   powershell -c "Set-Item Env:PARSEC_API_KEY psc_...; irm .../install.ps1 | iex"
 # which reads the same from cmd and from PowerShell: no $ to expand.)
@@ -67,6 +68,9 @@ param(
     # The per-account psc_ key from https://app.getparsec.ai. Stored via
     # `parsec key set` so savings report from the first routed request.
     [string]$Key = "",
+    # Skip the browser sign-in (`parsec login`) the install otherwise ends
+    # with. CI and scripted installs; a -Key install skips it on its own.
+    [switch]$NoLogin,
     # Install the tray app (notification area + taskbar) and register it to
     # start at sign-in. Opt-in: a login item is a persistent, visible addition
     # to someone's machine and should not appear because they installed a CLI.
@@ -91,6 +95,7 @@ if ($env:PARSEC_BYOK -eq "1") { $Byok = $true }
 if ($env:PARSEC_NO_DESKTOP -eq "1") { $NoDesktop = $true }
 if ($env:PARSEC_NO_CA -eq "1") { $NoCa = $true }
 if ($env:PARSEC_NO_AUTOSTART -eq "1") { $NoAutostart = $true }
+if ($env:PARSEC_NO_LOGIN -eq "1") { $NoLogin = $true }
 if (-not $Key -and $env:PARSEC_API_KEY) { $Key = $env:PARSEC_API_KEY }
 $Key = "$Key".Trim()
 # The proxy honours PARSEC_API_KEY itself; drop it from this process so the
@@ -654,7 +659,7 @@ foreach ($t in $Tools) {
             claude plugin install parsec@parsec-marketplace
             if ($LASTEXITCODE -eq 0) {
                 if ($keySaved) { Write-Host "Claude Code plugin installed." }
-                else { Write-Host "Claude Code plugin installed - get a key at https://app.getparsec.ai and run /parsec:key in a session." }
+                else { Write-Host "Claude Code plugin installed - run /parsec:login in a session to link your dashboard." }
             }
             else {
                 Write-Warning "plugin install failed - do it manually:`n  claude plugin marketplace add $MarketplaceUrl`n  claude plugin install parsec@parsec-marketplace"
@@ -707,12 +712,24 @@ if ($Tools -contains "desktop") {
 }
 Write-Host "undo: parsec disable codex|opencode|desktop - parsec tray uninstall - claude plugin uninstall parsec"
 
-# -- final pointer: the one step left is adding an API key ---------------------
+# -- sign in: the one step left -------------------------------------------------
 Write-Host ""
 if ($keySaved) {
     Write-Host "API key saved - savings report to https://app.getparsec.ai from your next request." -ForegroundColor Green
 }
+elseif ($needsBinary -and (Test-Path $dest) -and -not $NoLogin -and [Environment]::UserInteractive) {
+    # Interactive install with a binary: finish by signing in right here.
+    # `parsec login` opens the dashboard and hands the key straight back to
+    # this machine (packages/proxy/src/login.rs); nothing to paste.
+    Write-Host "-> Signing in - a browser tab is opening at https://app.getparsec.ai; click Connect." -ForegroundColor Green
+    try { & $dest login --timeout 300 } catch { $global:LASTEXITCODE = 1 }
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "-> Not signed in yet - run  parsec login  any time (or click Sign in in the parsec tray app)." -ForegroundColor Green
+    }
+}
+elseif ($needsBinary) {
+    Write-Host "-> Sign in: run  parsec login  - it opens https://app.getparsec.ai and links this machine." -ForegroundColor Green
+}
 else {
-    $keyCmd = if ($needsBinary) { "parsec key set <key>" } else { "/parsec:key in a Claude Code session" }
-    Write-Host ("-> Go to https://app.getparsec.ai - grab your API key, then add it: " + $keyCmd) -ForegroundColor Green
+    Write-Host "-> Sign in: run /parsec:login in a Claude Code session - it opens https://app.getparsec.ai and links this machine." -ForegroundColor Green
 }
